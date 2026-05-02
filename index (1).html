@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <title>APEX SHARP | Real‑Time Syndicate Engine</title>
+  <!-- Fonts: Orbitron for logo, Rajdhani for data, Inter for readability -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400..900&family=Rajdhani:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body {
+      background: #0a0c0f;
+      font-family: 'Inter', sans-serif;
+      color: #e0e0e0;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+    .hidden { display: none !important; }
+
+    /* LOGIN SCREEN */
+    #login-screen {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: radial-gradient(circle at 30% 40%, #0f1720, #020305);
+    }
+    .login-container {
+      background: rgba(10,15,22,0.85);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(0,247,255,0.15);
+      border-radius: 24px;
+      padding: 3.5rem 2.5rem;
+      width: 100%;
+      max-width: 420px;
+      box-shadow: 0 25px 60px rgba(0,0,0,0.7), 0 0 40px rgba(0,200,255,0.08);
+      text-align: center;
+    }
+    .login-logo {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 2.4rem;
+      font-weight: 800;
+      letter-spacing: 4px;
+      background: linear-gradient(135deg, #00f2fe, #4facfe);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 0.8rem;
+    }
+    .login-subtitle {
+      color: #6f7a8a;
+      font-size: 0.8rem;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      margin-bottom: 2.2rem;
+    }
+    .input-field {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 14px;
+      padding: 1rem 1.2rem;
+      width: 100%;
+      color: #fff;
+      font-size: 1.1rem;
+      text-align: center;
+      font-family: 'Rajdhani', sans-serif;
+      letter-spacing: 2px;
+      margin-bottom: 1.8rem;
+      outline: none;
+      transition: 0.3s;
+    }
+    .input-field:focus {
+      border-color: #00f2fe;
+      box-shadow: 0 0 18px rgba(0,242,254,0.3);
+    }
+    .btn-sharp {
+      background: linear-gradient(135deg, #00c6ff, #0072ff);
+      border: none;
+      border-radius: 14px;
+      padding: 1rem 1.8rem;
+      width: 100%;
+      font-weight: 700;
+      font-size: 1rem;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: #fff;
+      cursor: pointer;
+      transition: 0.25s;
+      font-family: 'Rajdhani', sans-serif;
+      box-shadow: 0 8px 20px rgba(0,114,255,0.35);
+    }
+    .btn-sharp:hover {
+      box-shadow: 0 12px 28px rgba(0,242,254,0.45);
+      transform: translateY(-1px);
+    }
+    .error-msg {
+      color: #ff4d6a;
+      font-size: 0.85rem;
+      margin-top: 0.6rem;
+      min-height: 1.2rem;
+    }
+
+    /* DASHBOARD */
+    .top-bar {
+      background: rgba(10,15,22,0.8);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid rgba(0,247,255,0.1);
+      padding: 1.2rem 3rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .top-logo {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 1.8rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, #00e5ff, #0066ff);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      letter-spacing: 3px;
+    }
+    .nav-links span {
+      margin: 0 1.5rem;
+      font-weight: 500;
+      color: #9aa9b9;
+      cursor: pointer;
+      font-size: 0.9rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .nav-links span.active, .nav-links span:hover { color: #00f2fe; }
+    .dashboard-grid {
+      padding: 2rem 3rem;
+      display: grid;
+      grid-template-columns: 1fr 320px;
+      gap: 2rem;
+    }
+    .card {
+      background: rgba(18,24,32,0.75);
+      backdrop-filter: blur(18px);
+      border: 1px solid rgba(255,255,255,0.05);
+      border-radius: 24px;
+      padding: 1.8rem;
+      box-shadow: 0 15px 35px rgba(0,0,0,0.6);
+    }
+    .match-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 1rem;
+    }
+    .match-table th {
+      text-align: left;
+      color: #6a7b8e;
+      font-weight: 500;
+      font-size: 0.7rem;
+      letter-spacing: 2px;
+      padding-bottom: 0.8rem;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+    .match-table td {
+      padding: 1rem 0.2rem 1rem 0;
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+      font-weight: 500;
+    }
+    .tier-badge {
+      display: inline-block;
+      padding: 0.25rem 0.9rem;
+      border-radius: 30px;
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 1px;
+    }
+    .tier1 { background: #ff0130; color: #fff; box-shadow: 0 0 12px #ff0130; }
+    .tier2 { background: #ff8c00; color: #000; }
+    .tier3 { background: #00c853; color: #000; }
+    .tier4 { background: #2e7d32; color: #fff; }
+    .no-bet { background: #424242; color: #aaa; }
+    .btn-scan {
+      background: transparent;
+      border: 1px solid #00f2fe;
+      color: #00f2fe;
+      padding: 0.7rem 2rem;
+      border-radius: 30px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: 0.2s;
+      letter-spacing: 1px;
+    }
+    .btn-scan:hover { background: #00f2fe20; }
+    .stat-panel { display: flex; flex-direction: column; gap: 1.5rem; }
+    .stat-box {
+      background: rgba(0,0,0,0.25);
+      border-radius: 18px;
+      padding: 1.2rem;
+      text-align: center;
+    }
+    .modal {
+      position: fixed;
+      top:0; left:0; width:100%; height:100%;
+      background: rgba(0,0,0,0.85);
+      backdrop-filter: blur(10px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+    }
+    .modal-content {
+      background: #121a22;
+      border: 1px solid rgba(0,247,255,0.2);
+      border-radius: 28px;
+      padding: 2rem;
+      max-width: 700px;
+      width: 90%;
+      max-height: 85vh;
+      overflow-y: auto;
+    }
+    .close-btn { float:right; font-size:1.5rem; cursor:pointer; color:#aaa; }
+    footer { text-align:center; padding:1.5rem; color:#4a5560; font-size:0.8rem; }
+
+    @media (max-width: 800px) {
+      .dashboard-grid { grid-template-columns: 1fr; padding: 1.2rem; }
+    }
+  </style>
+</head>
+<body>
+  <!-- LOGIN -->
+  <div id="login-screen">
+    <div class="login-container">
+      <div class="login-logo">APEX SHARP</div>
+      <div class="login-subtitle">Institutional Live Engine</div>
+      <input type="password" id="pin-input" class="input-field" placeholder="ACCESS PIN" maxlength="10">
+      <button class="btn-sharp" id="login-btn">AUTHENTICATE</button>
+      <div id="login-error" class="error-msg"></div>
+    </div>
+  </div>
+
+  <!-- DASHBOARD -->
+  <div id="dashboard" class="hidden">
+    <div class="top-bar">
+      <div class="top-logo">APEX SHARP</div>
+      <div class="nav-links">
+        <span class="active" data-tab="scanner">Live Scanner</span>
+        <span data-tab="value">Value Alerts</span>
+      </div>
+    </div>
+    <div class="dashboard-grid">
+      <div class="card">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <h2 style="font-family:'Rajdhani'; font-weight:600; letter-spacing:2px;">LIVE INTELLIGENCE FEED</h2>
+          <button class="btn-scan" id="scan-btn">⟳ REFRESH LIVE DATA</button>
+        </div>
+        <table class="match-table" id="match-table-body">
+          <thead><tr><th>MATCH</th><th>MARKET</th><th>SELECTION</th><th>SOFT ODDS</th><th>PINNACLE</th><th>EV%</th><th>TIER</th><th>STAKE</th></tr></thead>
+          <tbody></tbody>
+        </table>
+        <div id="loading-msg" style="margin-top:1rem; color:#5a6b7a;"></div>
+      </div>
+      <div class="stat-panel">
+        <div class="card stat-box">
+          <div style="font-family:'Orbitron'; font-size:1.6rem; color:#00f2fe;" id="active-alerts">0</div>
+          <div style="letter-spacing:1px;">LIVE ALERTS</div>
+        </div>
+        <div class="card stat-box">
+          <canvas id="tierChart" width="200" height="200"></canvas>
+        </div>
+      </div>
+    </div>
+    <footer>⚠️ Real odds via The Odds API. Gamble responsibly. 18+ only. Edge derived from Pinnacle benchmark.</footer>
+  </div>
+
+  <!-- DETAIL MODAL -->
+  <div id="detail-modal" class="modal hidden">
+    <div class="modal-content" id="modal-content"></div>
+  </div>
+
+  <script>
+    (function() {
+      // --- PASSWORD ---
+      const CORRECT_PIN = "20233";
+      const loginScreen = document.getElementById('login-screen');
+      const dashboard = document.getElementById('dashboard');
+      document.getElementById('login-btn').addEventListener('click', () => {
+        if (document.getElementById('pin-input').value.trim() === CORRECT_PIN) {
+          loginScreen.classList.add('hidden');
+          dashboard.classList.remove('hidden');
+          initLiveEngine();
+        } else {
+          document.getElementById('login-error').textContent = 'ACCESS DENIED – INVALID PIN';
+        }
+      });
+
+      // --- LIVE ENGINE ---
+      const API_KEY = "odd8d5be4e6b09aa42a32da90dc30c3ea63"; 
+      const BASE_URL = "https://api.the-odds-api.com/v4/sports/soccer_epl/odds/"; // English Premier League, can be changed
+      const REGIONS = "uk"; // to get Pinnacle & Bet365
+      const MARKETS = "h2h"; // 1X2 market
+      const ODDS_FORMAT = "decimal";
+
+      // Cache for match data
+      let matchAnalyses = [];
+
+      async function fetchLiveOdds() {
+        const params = new URLSearchParams({
+          apiKey: API_KEY,
+          regions: REGIONS,
+          markets: MARKETS,
+          oddsFormat: ODDS_FORMAT
+        });
+        const url = `${BASE_URL}?${params.toString()}`;
+        const response = await fetch(url);
+        if (!response.ok) throw new Error(`API error: ${response.status}`);
+        const data = await response.json();
+        return data;
+      }
+
+      function processMatches(apiData) {
+        const analyses = [];
+        apiData.forEach(fixture => {
+          // Separate bookmakers
+          const pinnacle = fixture.bookmakers.find(b => b.key === 'pinnacle');
+          const bet365 = fixture.bookmakers.find(b => b.key === 'bet365');
+          if (!pinnacle || !bet365) return; // need both
+
+          const pinnMarket = pinnacle.markets.find(m => m.key === 'h2h');
+          const softMarket = bet365.markets.find(m => m.key === 'h2h');
+          if (!pinnMarket || !softMarket) return;
+
+          // Extract odds (home, draw, away)
+          const getOdds = (market) => {
+            const outcomes = market.outcomes;
+            const home = outcomes.find(o => o.name === fixture.home_team)?.price;
+            const away = outcomes.find(o => o.name === fixture.away_team)?.price;
+            const draw = outcomes.find(o => o.name === 'Draw')?.price;
+            return { home, away, draw };
+          };
+
+          const pinnOdds = getOdds(pinnMarket);
+          const softOdds = getOdds(softMarket);
+          if (!pinnOdds.home || !softOdds.home) return;
+
+          // Calculate Pinnacle overround (true market)
+          const pinnOverround = (1/pinnOdds.home + 1/pinnOdds.draw + 1/pinnOdds.away);
+          const fairHomeProb = (1/pinnOdds.home) / pinnOverround;
+          const fairDrawProb = (1/pinnOdds.draw) / pinnOverround;
+          const fairAwayProb = (1/pinnOdds.away) / pinnOverround;
+
+          // Evaluate best value among home/draw/away vs soft book
+          const candidates = [
+            { name: fixture.home_team, softOdd: softOdds.home, trueProb: fairHomeProb },
+            { name: 'Draw', softOdd: softOdds.draw, trueProb: fairDrawProb },
+            { name: fixture.away_team, softOdd: softOdds.away, trueProb: fairAwayProb }
+          ];
+
+          candidates.forEach(c => {
+            const impliedProb = 1 / c.softOdd;
+            const ev = (c.trueProb * (c.softOdd - 1) - (1 - c.trueProb)) * 100;
+            const clv = ((c.softOdd / (1 / c.trueProb)) - 1) * 100; // CLV against true price
+            const sharpDiv = Math.abs(c.softOdd - (1 / c.trueProb)) / (1 / c.trueProb) * 100;
+
+            let tier, signal, betRating;
+            if (ev > 8 && clv > 6) { tier = "TIER 1"; signal = "BET"; betRating = "SYNDICATE GRADE"; }
+            else if (ev > 5 && clv > 3) { tier = "TIER 2"; signal = "BET"; betRating = "SHARP VALUE"; }
+            else if (ev > 2.5) { tier = "TIER 3"; signal = "BET"; betRating = "VALUE"; }
+            else if (ev > 0) { tier = "TIER 4"; signal = "SKIP"; betRating = "MARGINAL"; }
+            else { tier = "NO BET"; signal = "STRONG SKIP"; betRating = "RETAIL TRAP"; }
+
+            // Kelly quarter
+            const b = c.softOdd - 1;
+            let fullKelly = (b * c.trueProb - (1 - c.trueProb)) / b;
+            fullKelly = Math.max(0, fullKelly);
+            const quarterKelly = fullKelly * 0.25 * 100;
+
+            // Units
+            let units;
+            if (ev > 8) units = 3;
+            else if (ev > 5) units = 2;
+            else if (ev > 2.5) units = 1;
+            else if (ev > 0) units = 0.5;
+            else units = 0;
+
+            // Poisson model rough estimate (based on odds)
+            const totalGoalsEst = 2.7; // league avg
+            const homeLambda = (fairHomeProb * 3).toFixed(2);
+            const awayLambda = (fairAwayProb * 2.4).toFixed(2);
+
+            analyses.push({
+              alertTier: tier,
+              signal,
+              betRating,
+              match: `${fixture.home_team} vs ${fixture.away_team}`,
+              market: "1X2",
+              selection: c.name,
+              bookOdds: c.softOdd.toFixed(2),
+              pinnacleOdds: (1/c.trueProb).toFixed(2),
+              impliedProbability: (impliedProb*100).toFixed(1)+'%',
+              trueProbability: (c.trueProb*100).toFixed(1)+'%',
+              expectedValue: ev.toFixed(2)+'%',
+              clvProjection: clv.toFixed(2)+'%',
+              kellyStake: quarterKelly.toFixed(2)+'%',
+              recommendedUnits: units,
+              sharpBookDivergence: sharpDiv.toFixed(1)+'%',
+              poissonModel: {
+                homeGoalsLambda: homeLambda,
+                awayGoalsLambda: awayLambda,
+                predictedScore: `${Math.round(parseFloat(homeLambda))}-${Math.round(parseFloat(awayLambda))}`,
+                over25Probability: 'N/A',
+                bttsProb: 'N/A'
+              },
+              syndicateNarrative: "Pinnacle-derived true probability exposes soft book mispricing. Sharp money likely to correct line.",
+              edgeExplanation: "The soft book is offering a price above the true market consensus (Pinnacle). Positive expected value exists before line movement.",
+              executionAdvice: "Strike quickly before the line moves. Use the soft book.",
+              responsibleGamblingScore: ev > 5 ? 4 : 6,
+              verdict: ev > 5 ? "Strong value, follow unit guidance." : (ev > 0 ? "Marginal value, reduce stake." : "Avoid.")
+            });
+          });
+        });
+        return analyses;
+      }
+
+      function renderUI(analyses) {
+        const tbody = document.querySelector('#match-table-body tbody');
+        tbody.innerHTML = '';
+        analyses.forEach(a => {
+          const tr = document.createElement('tr');
+          tr.style.cursor = 'pointer';
+          tr.onclick = () => showDetail(a);
+          let tierClass = '';
+          if (a.alertTier==='TIER 1') tierClass='tier1';
+          else if (a.alertTier==='TIER 2') tierClass='tier2';
+          else if (a.alertTier==='TIER 3') tierClass='tier3';
+          else if (a.alertTier==='TIER 4') tierClass='tier4';
+          else tierClass='no-bet';
+          tr.innerHTML = `
+            <td><strong>${a.match}</strong></td>
+            <td>${a.market}</td>
+            <td>${a.selection}</td>
+            <td>${a.bookOdds}</td>
+            <td>${a.pinnacleOdds}</td>
+            <td style="color:${a.expectedValue.startsWith('-')?'#ff4d6a':'#00e676'}">${a.expectedValue}</td>
+            <td><span class="tier-badge ${tierClass}">${a.alertTier}</span></td>
+            <td>${a.recommendedUnits}u</td>
+          `;
+          tbody.appendChild(tr);
+        });
+        document.getElementById('active-alerts').textContent = analyses.filter(a=>a.alertTier!=='NO BET').length;
+        drawTierChart(analyses);
+      }
+
+      let tierChart;
+      function drawTierChart(analyses) {
+        const ctx = document.getElementById('tierChart').getContext('2d');
+        const tiers = { 'TIER 1':0, 'TIER 2':0, 'TIER 3':0, 'TIER 4':0, 'NO BET':0 };
+        analyses.forEach(a => tiers[a.alertTier]++);
+        if (tierChart) tierChart.destroy();
+        tierChart = new Chart(ctx, {
+          type: 'doughnut',
+          data: {
+            labels: Object.keys(tiers),
+            datasets: [{
+              data: Object.values(tiers),
+              backgroundColor: ['#ff0130','#ff8c00','#00c853','#2e7d32','#424242'],
+              borderColor: '#0a0c0f'
+            }]
+          },
+          options: { plugins: { legend: { display: false } }, cutout: '65%' }
+        });
+      }
+
+      function showDetail(a) {
+        const modal = document.getElementById('detail-modal');
+        const content = document.getElementById('modal-content');
+        content.innerHTML = `
+          <span class="close-btn" onclick="document.getElementById('detail-modal').classList.add('hidden')">✕</span>
+          <h2 style="font-family:'Orbitron';">${a.match}</h2>
+          <p><strong>Market:</strong> ${a.market} | <strong>Selection:</strong> ${a.selection}</p>
+          <p><strong>Alert Tier:</strong> <span class="tier-badge ${a.alertTier==='TIER 1'?'tier1':a.alertTier==='TIER 2'?'tier2':'tier3'}">${a.alertTier}</span></p>
+          <p><strong>Soft Book Odds:</strong> ${a.bookOdds} | <strong>Pinnacle (True Price):</strong> ${a.pinnacleOdds}</p>
+          <p><strong>Implied Probability:</strong> ${a.impliedProbability} | <strong>Model True Probability:</strong> ${a.trueProbability}</p>
+          <p><strong>Expected Value:</strong> ${a.expectedValue} | <strong>CLV Projection:</strong> ${a.clvProjection}</p>
+          <p><strong>Kelly Stake (¼):</strong> ${a.kellyStake} | <strong>Units:</strong> ${a.recommendedUnits}</p>
+          <p><strong>Sharp Divergence:</strong> ${a.sharpBookDivergence}</p>
+          <p><strong>Syndicate Narrative:</strong> ${a.syndicateNarrative}</p>
+          <p><strong>Edge Explanation:</strong> ${a.edgeExplanation}</p>
+          <p><strong>Execution:</strong> ${a.executionAdvice}</p>
+          <p><strong>Responsible Gambling Score:</strong> ${a.responsibleGamblingScore}/10</p>
+          <p style="margin-top:1rem;">${a.verdict}</p>
+        `;
+        modal.classList.remove('hidden');
+      }
+
+      async function initLiveEngine() {
+        const loadingMsg = document.getElementById('loading-msg');
+        loadingMsg.textContent = '⏳ Fetching live odds from Pinnacle & Bet365...';
+        try {
+          const rawData = await fetchLiveOdds();
+          matchAnalyses = processMatches(rawData);
+          renderUI(matchAnalyses);
+          loadingMsg.textContent = `✅ Live data loaded — ${matchAnalyses.length} value opportunities analyzed.`;
+        } catch (err) {
+          loadingMsg.textContent = `❌ API Error: ${err.message}. Check key or try later.`;
+          console.error(err);
+        }
+
+        document.getElementById('scan-btn').addEventListener('click', async () => {
+          loadingMsg.textContent = '⏳ Refreshing live data...';
+          const rawData = await fetchLiveOdds();
+          matchAnalyses = processMatches(rawData);
+          renderUI(matchAnalyses);
+          loadingMsg.textContent = `✅ Refreshed — ${matchAnalyses.length} opportunities.`;
+        });
+
+        document.getElementById('detail-modal').addEventListener('click', function(e) {
+          if (e.target === this) this.classList.add('hidden');
+        });
+      }
+    })();
+  </script>
+</body>
+</html>
